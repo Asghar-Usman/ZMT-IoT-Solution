@@ -1,0 +1,5 @@
+Hardware:
+	Arduino pro mini
+	9V battery
+	MCP 9808 temperature sensor
+	433 MHz radio

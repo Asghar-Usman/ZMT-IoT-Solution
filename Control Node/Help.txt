@@ -1,0 +1,5 @@
+Hardware:
+	Relay
+	Arduino Nano
+	12V DC power supply
+	433 MHz radio
