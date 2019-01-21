@@ -2,19 +2,22 @@
 #include <RH_RF69.h>
 #include <RHReliableDatagram.h>
 
+
 #include <Wire.h>
 #include "Adafruit_MCP9808.h"
+
 
 #include "LowPower.h"
 #define intervalMinutes 1 // Could be changed to any integer value in minutes
 
-// Change to 434.0 or other frequency, must match RX's freq!
-#define RF69_FREQ 433.0
+
+
+#define RF69_FREQ       433.0
 #define vccRFM69HCW     7
 // Where to send packets to!
-#define DEST_ADDRESS   1
+#define DEST_ADDRESS    1
 // change addresses for each client board, any number :)
-#define MY_ADDRESS     2
+#define MY_ADDRESS      2
 
 #if defined (__AVR_ATmega328P__)  // Feather 328P w/wing
   #define RFM69_INT     3  // RFM69 ---> G0
@@ -42,10 +45,10 @@ SEN_NODE activeState = accquireData; // Create a variable and initialize it to f
 
 // Create the MCP9808 temperature sensor object
 Adafruit_MCP9808 tempsensor = Adafruit_MCP9808();
-#define vccMCP9808 A3
+#define vccMCP9808    A3
 
 int wakeupCount = intervalMinutes*8;
-int temp = 1;
+byte temp = 1;
 
 void setup() {
   
