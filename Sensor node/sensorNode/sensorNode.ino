@@ -6,10 +6,11 @@
 #include "Adafruit_MCP9808.h"
 
 #include "LowPower.h"
+#define intervalMinutes 1 // Could be changed to any integer value in minutes
 
 // Change to 434.0 or other frequency, must match RX's freq!
 #define RF69_FREQ 433.0
-#define vccRFM69HCW 8
+#define vccRFM69HCW     7
 // Where to send packets to!
 #define DEST_ADDRESS   1
 // change addresses for each client board, any number :)
@@ -43,18 +44,29 @@ SEN_NODE activeState = accquireData; // Create a variable and initialize it to f
 Adafruit_MCP9808 tempsensor = Adafruit_MCP9808();
 #define vccMCP9808 A3
 
+int wakeupCount = intervalMinutes*8;
+int temp = 1;
 
 void setup() {
   
   Serial.begin(115200);
-  digitalWrite(vccMCP9808,HIGH);
-  pinMode(vccMCP9808,OUTPUT);
-  tempsensor.begin();
-  Serial.println("Hi");
+  Serial.println("void setup");
   Serial.flush();
-  pinMode(vccMCP9808,INPUT);
-  digitalWrite(vccMCP9808,LOW);
+  // RFM69HCW Initialization
+  pinMode(vccRFM69HCW, OUTPUT);
+  digitalWrite(vccRFM69HCW, HIGH);
+  pinMode(RFM69_RST, OUTPUT);
+  // END RFM69HCW Initialization
+  pinMode(vccMCP9808, OUTPUT);
+  digitalWrite (vccMCP9808, HIGH);
+  delay(500);
+  if (!tempsensor.begin()) {
+  Serial.println("Couldn't find MCP9808!");
+  Serial.flush();
+  while (1);
   
+  }
+  digitalWrite (vccMCP9808, LOW);
 }
 
 void loop() {
@@ -64,18 +76,21 @@ void loop() {
     case accquireData:
     {
       Serial.println("Data is being accquired");
-      digitalWrite(vccMCP9808,HIGH);
-      pinMode(vccMCP9808,OUTPUT);
+      digitalWrite (vccMCP9808, HIGH);
       delay(250);
+      // activate I2C
       Wire.begin();
+
       float c = tempsensor.readTempC();
       float f = c * 9.0 / 5.0 + 32;
       Serial.print("Temp: "); Serial.print(c); Serial.print("*C\t"); 
       Serial.print(f); Serial.println("*F");
-      pinMode(vccMCP9808,INPUT);
-      digitalWrite(vccMCP9808,LOW);
-      
-        
+      Serial.flush();
+  // time now available in now.hour(), now.minute() etc.
+
+  // finished with clock
+    
+      digitalWrite (vccMCP9808, LOW);
       delay(1000);
       activeState = transmitData;
       break;
@@ -83,7 +98,44 @@ void loop() {
     
     case transmitData:
     {
+      radioInit();
+      digitalWrite(vccRFM69HCW,LOW);
       Serial.println("Data has been transmitted");
+      Serial.flush();
+      delay(1000);  // Wait 1 second between transmits, could also 'sleep' here!
+    
+      char radiopacket[20] = "Hello World #";
+      itoa(packetnum++, radiopacket+13, 10);
+      Serial.print("Sending "); Serial.println(radiopacket);
+  
+      // Send a message to the DESTINATION!
+      if (rf69_manager.sendtoWait((uint8_t *)radiopacket, strlen(radiopacket), DEST_ADDRESS)) {
+      // Now wait for a reply from the server
+      uint8_t len = sizeof(buf);
+      uint8_t from;   
+      if (rf69_manager.recvfromAckTimeout(buf, &len, 2000, &from)) {
+      buf[len] = 0; // zero out remaining string
+      
+      Serial.print("Got reply from #"); Serial.print(from);
+      Serial.print(" [RSSI :");
+      Serial.print(rf69.lastRssi());
+      Serial.print("] : ");
+      Serial.println((char*)buf);     
+      
+    } else {
+      Serial.println("No reply, is anyone listening?");
+    }
+    }
+    
+    else {
+    Serial.println("Sending failed (no ack)");
+    }
+    
+    digitalWrite(vccRFM69HCW,HIGH);
+
+
+
+      
       delay(1000);
       activeState = prepareSleep;
       break;
@@ -91,25 +143,36 @@ void loop() {
     
     case prepareSleep:
     {
-      
       Serial.println("Prepare to sleep");
       TWCR &= ~(bit(TWEN) | bit(TWIE) | bit(TWEA));
 
       // turn off I2C pull-ups
       digitalWrite (A4, LOW);
       digitalWrite (A5, LOW);
+      Serial.flush();
       delay(1000);
       activeState = executeSleep;
       break;
-   
     }
     
     case executeSleep:
     {
       
-      Serial.println("Sleep mode execution");
-      LowPower.powerDown(SLEEP_8S, ADC_OFF, BOD_OFF);
-      activeState = accquireData;
+      Serial.println("Sleep mode execution #" + String(temp));
+      Serial.flush();
+      if (temp > wakeupCount)
+        {
+         activeState = accquireData;
+         temp = 1;
+        }
+      else
+        {
+         LowPower.powerDown(SLEEP_8S, ADC_OFF, BOD_OFF);
+         temp ++;
+         activeState = executeSleep;
+        }
+      
+      
       break;
       
     }
@@ -122,7 +185,7 @@ void loop() {
 void radioInit()
 {
   digitalWrite(vccRFM69HCW,LOW);
-  delay(250);
+  delay(500);
    // manual reset
   digitalWrite(RFM69_RST, HIGH);
   delay(10);
@@ -141,7 +204,12 @@ void radioInit()
   }
 
   Serial.print("RFM69 radio @");  Serial.print((int)RF69_FREQ);  Serial.println(" MHz");
-  
+  rf69.setTxPower(20, true);  // range from 14-20 for power, 2nd arg must be true for 69HCW
+
+  // The encryption key has to be the same as the one in the server
+  uint8_t key[] = { 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08,
+                    0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08};
+  rf69.setEncryptionKey(key);
   digitalWrite(vccRFM69HCW,HIGH);
 
   }
