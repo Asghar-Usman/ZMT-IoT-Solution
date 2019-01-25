@@ -24,6 +24,7 @@
   #define RFM69_INT     3  // RFM69 ---> G0
   #define RFM69_CS      4  // RFM69 ---> CS
   #define RFM69_RST     2  // RFM69 ---> RST  
+
 #endif
 
 // Singleton instance of the radio driver
@@ -54,6 +55,7 @@ void setup() {
   
   Serial.begin(115200);
   Serial.println("void setup"); 
+ 
   pinMode(vccMCP9808, OUTPUT);
   digitalWrite (vccMCP9808, HIGH);
   delay(500);
@@ -71,7 +73,9 @@ void loop() {
   {
     case accquireData:
     {
+     
       Serial.println("Data is being accquired");
+   
       digitalWrite (vccMCP9808, HIGH);
       delay(250);
       // activate I2C
@@ -119,8 +123,7 @@ void loop() {
     }
     
     digitalWrite(vccRFM69HCW,HIGH);
-
-
+    
 
       
       delay(1000);
