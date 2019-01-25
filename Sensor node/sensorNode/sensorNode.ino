@@ -53,13 +53,7 @@ byte temp = 0;
 void setup() {
   
   Serial.begin(115200);
-  Serial.println("void setup");
-  
-  // RFM69HCW Initialization
-  pinMode(vccRFM69HCW, OUTPUT);
-  digitalWrite(vccRFM69HCW, HIGH);
-  pinMode(RFM69_RST, OUTPUT);
-  
+  Serial.println("void setup"); 
   pinMode(vccMCP9808, OUTPUT);
   digitalWrite (vccMCP9808, HIGH);
   delay(500);
@@ -94,7 +88,7 @@ void loop() {
     case transmitData:
     {
       radioInit();
-      digitalWrite(vccRFM69HCW,LOW);
+      
       Serial.println("Data has been transmitted");     
       delay(1000);  // Wait 1 second between transmits, could also 'sleep' here!  
       
@@ -137,13 +131,25 @@ void loop() {
     case prepareSleep:
     {
       Serial.println("Prepare to sleep");
+      
+      SPI.end(); // shutdown the SPI interface
+      pinMode(SCK,INPUT);
+      digitalWrite(SCK,LOW); // shut off pullup resistor
+      pinMode(MOSI,INPUT);
+      digitalWrite(MOSI,LOW); // shut off pullup resistor
+      pinMode(MISO,INPUT);
+      digitalWrite(MISO,LOW); // shut off pullup resistor
+      pinMode(RFM69_CS,INPUT);
+      digitalWrite(RFM69_CS,LOW);
+      digitalWrite(vccRFM69HCW,HIGH);
+      
       TWCR &= ~(bit(TWEN) | bit(TWIE) | bit(TWEA));
 
       // turn off I2C pull-ups
       digitalWrite (A4, LOW);
       digitalWrite (A5, LOW);
       Serial.flush();
-      delay(1000);
+      delay(100);
       activeState = executeSleep;
       break;
     }
@@ -177,9 +183,29 @@ void loop() {
 
 void radioInit()
 {
+
+  Serial.println("Initialzing....");
   digitalWrite(vccRFM69HCW,LOW);
+  digitalWrite(RFM69_RST,LOW);
+  pinMode(vccRFM69HCW,OUTPUT);
+  pinMode(RFM69_RST,OUTPUT);
+  pinMode(SCK,OUTPUT);
+  pinMode(MOSI,OUTPUT);
+  pinMode(MISO,OUTPUT);
+  pinMode(RFM69_CS,OUTPUT);
+  
+
+  
+  SPI.begin();
+
+
+  
+  //digitalWrite(RFM69_CS,HIGH);
   delay(500);
-   // manual reset
+  
+  
+  
+// manual reset
   digitalWrite(RFM69_RST, HIGH);
   delay(10);
   digitalWrite(RFM69_RST, LOW);
@@ -196,15 +222,20 @@ void radioInit()
     Serial.println("setFrequency failed");
   }
 
-  Serial.print("RFM69 radio @");  Serial.print((int)RF69_FREQ);  Serial.println(" MHz");
+  // If you are using a high power RF69 eg RFM69HW, you *must* set a Tx power with the
+  // ishighpowermodule flag set like this:
   rf69.setTxPower(20, true);  // range from 14-20 for power, 2nd arg must be true for 69HCW
 
   // The encryption key has to be the same as the one in the server
   uint8_t key[] = { 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08,
                     0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08};
   rf69.setEncryptionKey(key);
-  digitalWrite(vccRFM69HCW,HIGH);
-
+  
+ 
+  Serial.print("RFM69 radio @");  Serial.print((int)RF69_FREQ);  Serial.println(" MHz");
+  
+  
   }
+
 
 
