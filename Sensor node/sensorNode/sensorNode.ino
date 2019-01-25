@@ -13,7 +13,8 @@
 
 
 #define RF69_FREQ       433.0
-#define vccRFM69HCW     7
+#define vccRFM69HCW     7 // Control signal to PNP TIP32
+
 // Where to send packets to!
 #define DEST_ADDRESS    1
 // change addresses for each client board, any number :)
@@ -22,8 +23,7 @@
 #if defined (__AVR_ATmega328P__)  // Feather 328P w/wing
   #define RFM69_INT     3  // RFM69 ---> G0
   #define RFM69_CS      4  // RFM69 ---> CS
-  #define RFM69_RST     2  // RFM69 ---> RST
-  
+  #define RFM69_RST     2  // RFM69 ---> RST  
 #endif
 
 // Singleton instance of the radio driver
@@ -36,7 +36,7 @@ int16_t packetnum = 0;  // packet counter, we increment per xmission
 // Dont put this on the stack:
 uint8_t buf[RH_RF69_MAX_MESSAGE_LEN];
 uint8_t data[] = "  OK";
-
+char payLoad[4];
 // Finite State Machine 
 typedef enum { accquireData, transmitData, prepareSleep, executeSleep } SEN_NODE;
 SEN_NODE activeState = accquireData; // Create a variable and initialize it to first State
@@ -54,22 +54,21 @@ void setup() {
   
   Serial.begin(115200);
   Serial.println("void setup");
-  Serial.flush();
+  
   // RFM69HCW Initialization
   pinMode(vccRFM69HCW, OUTPUT);
   digitalWrite(vccRFM69HCW, HIGH);
   pinMode(RFM69_RST, OUTPUT);
-  // END RFM69HCW Initialization
+  
   pinMode(vccMCP9808, OUTPUT);
   digitalWrite (vccMCP9808, HIGH);
   delay(500);
   if (!tempsensor.begin()) {
   Serial.println("Couldn't find MCP9808!");
-  Serial.flush();
   while (1);
-  
-  }
   digitalWrite (vccMCP9808, LOW);
+  }
+  
 }
 
 void loop() {
@@ -83,18 +82,11 @@ void loop() {
       delay(250);
       // activate I2C
       Wire.begin();
-
       float c = tempsensor.readTempC();
-      float f = c * 9.0 / 5.0 + 32;
-      Serial.print("Temp: "); Serial.print(c); Serial.print("*C\t"); 
-      Serial.print(f); Serial.println("*F");
-      Serial.flush();
-  // time now available in now.hour(), now.minute() etc.
-
-  // finished with clock
-    
+      dtostrf(c, 4, 2, payLoad);
+      Serial.print("Temp: "); Serial.print(payLoad);Serial.print("*C"); 
       digitalWrite (vccMCP9808, LOW);
-      delay(1000);
+      delay(100);
       activeState = transmitData;
       break;
     }
@@ -103,16 +95,14 @@ void loop() {
     {
       radioInit();
       digitalWrite(vccRFM69HCW,LOW);
-      Serial.println("Data has been transmitted");
-      Serial.flush();
-      delay(1000);  // Wait 1 second between transmits, could also 'sleep' here!
-    
-      char radiopacket[20] = "Hello World #";
-      itoa(packetnum++, radiopacket+13, 10);
-      Serial.print("Sending "); Serial.println(radiopacket);
+      Serial.println("Data has been transmitted");     
+      delay(1000);  // Wait 1 second between transmits, could also 'sleep' here!  
+      
+      
+      Serial.print("Sending "); Serial.println(payLoad);
   
       // Send a message to the DESTINATION!
-      if (rf69_manager.sendtoWait((uint8_t *)radiopacket, strlen(radiopacket), DEST_ADDRESS)) {
+      if (rf69_manager.sendtoWait((uint8_t *)payLoad, strlen(payLoad), DEST_ADDRESS)) {
       // Now wait for a reply from the server
       uint8_t len = sizeof(buf);
       uint8_t from;   
