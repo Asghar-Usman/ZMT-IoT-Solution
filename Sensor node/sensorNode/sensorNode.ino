@@ -48,7 +48,7 @@ Adafruit_MCP9808 tempsensor = Adafruit_MCP9808();
 #define vccMCP9808    A3
 
 int wakeupCount = intervalMinutes*8;
-byte temp = 1;
+byte temp = 0;
 
 void setup() {
   
@@ -84,7 +84,7 @@ void loop() {
       Wire.begin();
       float c = tempsensor.readTempC();
       dtostrf(c, 4, 2, payLoad);
-      Serial.print("Temp: "); Serial.print(payLoad);Serial.print("*C"); 
+      Serial.print("Temp: "); Serial.print(payLoad);Serial.println("*C"); 
       digitalWrite (vccMCP9808, LOW);
       delay(100);
       activeState = transmitData;
@@ -153,10 +153,10 @@ void loop() {
       
       Serial.println("Sleep mode execution #" + String(temp));
       Serial.flush();
-      if (temp > wakeupCount)
+      if (temp >= wakeupCount)
         {
          activeState = accquireData;
-         temp = 1;
+         temp = 0;
         }
       else
         {
