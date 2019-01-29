@@ -97,15 +97,33 @@ void loop() {
     // Wait for a message addressed to us from the client
     uint8_t len = sizeof(buf);
     uint8_t from;
+    char *charArray;
+
     if (rf69_manager.recvfromAck(buf, &len, &from)) {
       buf[len] = 0; // zero out remaining string
+
+        
       
-      Serial.print("Got packet from #"); Serial.print(from);
-      Serial.print(" [RSSI :");
-      Serial.print(rf69.lastRssi());
-      Serial.print("] : ");
-      Serial.println((char*)buf);
-     
+//      Serial.print("Got packet from #"); Serial.print(from);
+//      Serial.print(" [RSSI :");
+//      Serial.print(rf69.lastRssi());
+//      Serial.print("] : ");
+//      Serial.println((char*)buf);
+        charArray = (char*)buf;
+        if (from%2 == 0)
+        {
+          // Even Number
+          sprintf(charArray+strlen(charArray), "TS%d", from); 
+          
+          }
+        else
+        sprintf(charArray+strlen(charArray), "CS%d", from); 
+        Serial.println(charArray);
+//        Serial.println(strlen(charArray));
+//        strcpy(charArray+strlen(charArray), char(from));
+//        Serial.println(charArray);
+        
+
       // Send a reply back to the originator client
       if (!rf69_manager.sendtoWait(data, sizeof(data), from))
         Serial.println("Sending failed (no ack)");
