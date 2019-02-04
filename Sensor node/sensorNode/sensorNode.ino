@@ -138,13 +138,18 @@ void loop() {
       Serial.print(" [RSSI :");
       Serial.print(rf69.lastRssi());
       Serial.print("] : ");
-      Serial.println((char*)buf);     
+      Serial.println((char*)buf); 
+      
+      digitalWrite(vccRFM69HCW,HIGH);
+      activeState = prepareSleep;    
+      temp = 0;
       
     } else {
       Serial.println("No reply, is anyone listening?");
+      temp++;
+      activeState = transmitData;
     }
-        temp++;
-        activeState = transmitData;
+        
         }
 
 
