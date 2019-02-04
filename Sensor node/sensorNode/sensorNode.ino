@@ -19,6 +19,7 @@
 #define DEST_ADDRESS    1
 // change addresses for each client board, any number :)
 #define MY_ADDRESS      2
+#define RETRIES         5
 
 #if defined (__AVR_ATmega328P__)  // Feather 328P w/wing
   #define RFM69_INT     3  // RFM69 ---> G0
@@ -39,7 +40,7 @@ uint8_t buf[RH_RF69_MAX_MESSAGE_LEN];
 uint8_t data[] = "  OK";
 char payLoad[4];
 // Finite State Machine 
-typedef enum { accquireData, transmitData, prepareSleep, executeSleep } SEN_NODE;
+typedef enum { accquireData, radioReInit,transmitData,checkAck, prepareSleep, executeSleep } SEN_NODE;
 SEN_NODE activeState = accquireData; // Create a variable and initialize it to first State
 
 
@@ -85,16 +86,23 @@ void loop() {
       Serial.print("Temp: "); Serial.print(payLoad);Serial.println("*C"); 
       digitalWrite (vccMCP9808, LOW);
       delay(100);
-      activeState = transmitData;
+      activeState = radioReInit;
       break;
+    }
+    case radioReInit:
+    {
+      Serial.println("Radio re-Initialization");  
+      radioInit();
+      delay(200);  // Wait 1 second between transmits, could also 'sleep' here!  
+      activeState = transmitData;
     }
     
     case transmitData:
     {
-      radioInit();
+      
       
       Serial.println("Data has been transmitted");     
-      delay(1000);  // Wait 1 second between transmits, could also 'sleep' here!  
+      
       
       
       Serial.print("Sending "); Serial.println(payLoad);
@@ -102,9 +110,28 @@ void loop() {
       // Send a message to the DESTINATION!
       if (rf69_manager.sendtoWait((uint8_t *)payLoad, strlen(payLoad), DEST_ADDRESS)) {
       // Now wait for a reply from the server
+      // go to next state checkACK
+      
+      activeState = checkAck;
+    }
+    
+    else {
+    Serial.println("Sending failed");
+    activeState = prepareSleep;
+    }
+    
+      break;
+    }
+    
+    case checkAck:
+    {
+      Serial.println("Check Ack from the Server");
+
+      if (temp < RETRIES) // retry 
+      {
       uint8_t len = sizeof(buf);
       uint8_t from;   
-      if (rf69_manager.recvfromAckTimeout(buf, &len, 2000, &from)) {
+      if (rf69_manager.recvfromAckTimeout(buf, &len, 3000, &from)) {
       buf[len] = 0; // zero out remaining string
       
       Serial.print("Got reply from #"); Serial.print(from);
@@ -116,18 +143,23 @@ void loop() {
     } else {
       Serial.println("No reply, is anyone listening?");
     }
-    }
-    
-    else {
-    Serial.println("Sending failed (no ack)");
-    }
-    
-    digitalWrite(vccRFM69HCW,HIGH);
-    
+        temp++;
+        activeState = transmitData;
+        }
+
+
+      else  // skip to next step
+      
+      {
+        Serial.println("Could not get any response");
+        temp = 0;
+        digitalWrite(vccRFM69HCW,HIGH);
+        activeState = prepareSleep;
+        }
+  
 
       
-      delay(1000);
-      activeState = prepareSleep;
+      
       break;
     }
     
