@@ -6,7 +6,6 @@
 // level messaging abilities.
 // It is designed to work with the other example rf69_server.
 // Demonstrates the use of AES encryption, setting the frequency and modem 
-// configuration
 
 #include <SPI.h>
 #include <RH_RF69.h>
@@ -130,6 +129,3 @@ void loop() {
     }
   }
 }
-
-
-
