@@ -41,6 +41,7 @@ RHReliableDatagram rf69_manager(rf69, MY_ADDRESS);
 
 
 int16_t packetnum = 0;  // packet counter, we increment per xmission
+String incomingString;
 
 void setup() 
 {
@@ -128,4 +129,50 @@ void loop() {
         Serial.println("Sending failed (no ack)");
     }
   }
+  if (Serial.available()) {
+                // read the incoming byte:
+                incomingString = Serial.readString();
+                Serial.setTimeout(100);
+
+                // say what you got:
+                Serial.println(incomingString);
+                
+                int commaIndex = incomingString.indexOf(',');
+                int secondCommaIndex = incomingString.indexOf(',', commaIndex+1);
+                String firstValue = incomingString.substring(0, commaIndex);
+                String secondValue = incomingString.substring(commaIndex+1, secondCommaIndex);
+                
+                Serial.println(firstValue);
+                Serial.println(secondValue);
+                secondValue = secondValue+'\n';
+                int a = secondValue.toInt();
+                Serial.println(a);
+
+                char payLoad[50];
+                firstValue.toCharArray(payLoad,50);
+
+                
+               int DEST_ADDRESS = a;
+      
+      
+      
+      Serial.print("Sending "); Serial.println(payLoad);
+  
+      // Send a message to the DESTINATION!
+       rf69_manager.sendtoWait((uint8_t *)payLoad, strlen(payLoad), DEST_ADDRESS);
+      // Now wait for a reply from the server
+      // go to next state checkACK
+        uint8_t len = sizeof(buf);
+        uint8_t from; 
+       if (rf69_manager.recvfromAckTimeout(buf, &len, 5000, &from)) {
+      buf[len] = 0; // zero out remaining string
+      
+      Serial.print("Got reply from #"); Serial.print(from);
+      Serial.print(" [RSSI :");
+      Serial.print(rf69.lastRssi());
+      Serial.print("] : ");
+      Serial.println((char*)buf); }
+      Serial.println( payLoad );
+      
+}         
 }
