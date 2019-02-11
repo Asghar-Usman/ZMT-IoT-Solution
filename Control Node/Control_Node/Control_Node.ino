@@ -47,7 +47,9 @@ unsigned long currentMillis, previousMillis;
 #define UPDATE_INTERVAL_MINUTES 1
 
 byte state = HIGH;  // Turn ON the device at bootup
-
+uint8_t len = sizeof(buf);
+uint8_t from;
+char *charArray;
 
 
 byte temp = 0;
@@ -98,17 +100,15 @@ void setup() {
   
 }
 
-char action[4] = "ON";
+////char action[4] = "ON";
 
 void loop() {
 
   currentMillis = millis();
 
   // Wait for a message addressed to us from the client
-    uint8_t len = sizeof(buf);
-    uint8_t from;
-    char *charArray;
-   charArray = action;
+    
+  //// charArray = action;
     
   switch(activeState)
   {
@@ -122,7 +122,7 @@ void loop() {
       if (rf69_manager.recvfromAck(buf, &len, &from)) {
       buf[len] = 0; // zero out remaining string
 
-        //charArray = (char*)buf;
+        charArray = (char*)buf;
         Serial.println(charArray);
 
      
@@ -154,7 +154,7 @@ void loop() {
         
       }
 
-      else if (strncmp (charArray, "OFF", 3) == 0)
+      else if (strncmp (charArray, "OF", 2) == 0)
       {
         
         Serial.println("You have to TURN OFF the device");
@@ -206,6 +206,7 @@ void loop() {
 
       if (temp < RETRIES) // retry 
       {
+        Serial.print("temp :"); Serial.println(temp);
       uint8_t len = sizeof(buf);
       uint8_t from;   
       if (rf69_manager.recvfromAckTimeout(buf, &len, 3000, &from)) {
@@ -216,9 +217,10 @@ void loop() {
       Serial.print(rf69.lastRssi());
       Serial.print("] : ");
       Serial.println((char*)buf); 
-      delay (500);
-      temp = 0;
       activeState = waitForCommand;
+      delay (5000);
+      temp = 0;
+      
 
       
       }
@@ -237,7 +239,7 @@ void loop() {
         
         activeState = waitForCommand;
         }
-
+      Serial.println(activeState);
     }
 
 
@@ -247,6 +249,10 @@ void loop() {
 
   
   
+
+    
+
+}
  if ((currentMillis-previousMillis)/60000 >= UPDATE_INTERVAL_MINUTES)
   {
 
@@ -256,11 +262,8 @@ void loop() {
     Serial.println("Please send the status of your device");
     strcpy(payLoad, "Status");
     previousMillis = currentMillis;
-    }
-  else
-  {
-
-    if (state == HIGH)
+    
+     if (state == HIGH)
     {
       strcpy(payLoad,"ON");
     }
@@ -268,11 +271,14 @@ void loop() {
     strcpy(payLoad,"OFF");
 
     activeState = txData;
-    
     }
     
+  else
+  {
 
-}
-
+      /// Do nothing
+   
+    
+    }
 }
 
