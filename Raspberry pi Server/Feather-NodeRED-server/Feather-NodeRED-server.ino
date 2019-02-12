@@ -145,7 +145,29 @@ void loop() {
           
           }
         else
-        sprintf(charArray+strlen(charArray), "CS%d", from); 
+        
+        {
+
+          if (strcmp(charArray, "Done")== 0)
+          {
+
+            sprintf(charArray+strlen(charArray), ",%d", from);
+            
+                     
+            }
+            
+          else if (strncmp(charArray, "Status", 6) == 0)
+          {
+
+            sprintf(charArray+strlen(charArray), ",%d", from);
+                                 
+          }
+          
+
+
+          
+        }
+        
         Serial.println(charArray);
 
         activeState = waitForDownlink;
