@@ -147,7 +147,8 @@ void loop() {
         else
         
         {
-
+          
+          Serial.println(charArray);
           if (strcmp(charArray, "Done")== 0)
           {
 
