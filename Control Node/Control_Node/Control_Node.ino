@@ -227,7 +227,7 @@ void loop() {
       else {
       Serial.println("No reply, is anyone listening?");
       temp++;
-      activeState = waitForCommand;
+      activeState = txData;
       }
     
   }
@@ -239,18 +239,7 @@ void loop() {
         
         activeState = waitForCommand;
         }
-      Serial.println(activeState);
     }
-
-
-
-
-
-
-  
-  
-
-    
 
 }
  if ((currentMillis-previousMillis)/60000 >= UPDATE_INTERVAL_MINUTES)
@@ -265,11 +254,12 @@ void loop() {
     
      if (state == HIGH)
     {
-      strcpy(payLoad,"ON");
+      strcpy(payLoad+6,",ON");
     }
     else
-    strcpy(payLoad,"OFF");
+    strcpy(payLoad+6,",OFF");
 
+    Serial.println(payLoad);
     activeState = txData;
     }
     
