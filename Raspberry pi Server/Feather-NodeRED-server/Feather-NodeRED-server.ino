@@ -108,15 +108,15 @@ void loop() {
     {
       case waitForDownlink:
       {
-        Serial.println("State: Wait for Downlink");
+        //Serial.println("State: Wait for Downlink");
         if (rf69_manager.available())
   {
     // Wait for a message addressed to us from the client
-       Serial.println("State: Check SPI Receive");
+      // Serial.println("State: Check SPI Receive");
     if (rf69_manager.recvfromAck(buf, &len, &from)) {
       buf[len] = 0; // zero out remaining string
        if (!rf69_manager.sendtoWait(data, sizeof(data), from)) // Sending ACK to the client
-        Serial.println("Sending failed (no ack)");
+       // Serial.println("Sending failed (no ack)");
         
       
 
@@ -137,8 +137,8 @@ void loop() {
 
       case transferToServer:
       {
-        Serial.println("State: Transfer to Server");
-        Serial.print("RawData: ");Serial.println(charArray);
+       // Serial.println("State: Transfer to Server");
+        //Serial.print("RawData: ");Serial.println(charArray);
         if (from%2 == 0)
         {
           // Even Number
@@ -180,7 +180,7 @@ void loop() {
       case waitForUplink:
       {
 
-        Serial.println("State: Wait for Uplink");
+        //Serial.println("State: Wait for Uplink");
         
          if (Serial.available()) {
                 // read the incoming byte:
@@ -188,18 +188,18 @@ void loop() {
                 Serial.setTimeout(100);
 
                 // say what you got:
-                Serial.println(incomingString);
+                //Serial.println(incomingString);
                 
                 int commaIndex = incomingString.indexOf(',');
                 int secondCommaIndex = incomingString.indexOf(',', commaIndex+1);
                 String firstValue = incomingString.substring(0, commaIndex);
                 String secondValue = incomingString.substring(commaIndex+1, secondCommaIndex);
                 
-                Serial.println(firstValue);
-                Serial.println(secondValue);
+                //Serial.println(firstValue);
+                //Serial.println(secondValue);
                 secondValue = secondValue+'\n';
                 a = secondValue.toInt();
-                Serial.println(a);
+                //Serial.println(a);
 
                 
                 firstValue.toCharArray(payLoad,50);
@@ -223,10 +223,10 @@ void loop() {
 
       case txUplink:
       {
-        Serial.println("State: Tx Uplink ");
+        //Serial.println("State: Tx Uplink ");
 
-        Serial.print("Payload: "); Serial.print(payLoad); Serial.print("to the client "); 
-        Serial.println(a);
+        //Serial.print("Payload: "); Serial.print(payLoad); Serial.print("to the client "); 
+        //Serial.println(a);
   
       // Send a message to the DESTINATION!
          rf69_manager.sendtoWait((uint8_t *)payLoad, strlen(payLoad), a);
@@ -247,7 +247,7 @@ void loop() {
        case waitAck:
       {
 
-        Serial.println("State: Wait for ACK ");
+        //Serial.println("State: Wait for ACK ");
 
         if (temp<RETRIES)
         {
@@ -258,11 +258,11 @@ void loop() {
           if (rf69_manager.recvfromAckTimeout(buf, &len, 3000, &from)) {
       buf[len] = 0; // zero out remaining string
       
-      Serial.print("Got reply from #"); Serial.print(from);
-      Serial.print(" [RSSI :");
-      Serial.print(rf69.lastRssi());
-      Serial.print("] : ");
-      Serial.println((char*)buf); 
+      //Serial.print("Got reply from #"); Serial.print(from);
+      //Serial.print(" [RSSI :");
+      //Serial.print(rf69.lastRssi());
+      //Serial.print("] : ");
+      //Serial.println((char*)buf); 
       temp = 0;
       activeState = waitForDownlink;
       
