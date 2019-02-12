@@ -150,7 +150,7 @@ void loop() {
         {
           
           Serial.println(charArray);
-          if (strcmp(charArray, "Done")== 0)
+          if (strncmp(charArray, "ON",2)== 0)
           {
 
             sprintf(charArray+strlen(charArray), ",%d", from);
@@ -158,7 +158,7 @@ void loop() {
                      
             }
             
-          else if (strncmp(charArray, "Status", 6) == 0)
+          else if (strncmp(charArray, "OFF", 3) == 0)
           {
 
             sprintf(charArray+strlen(charArray), ",%d", from);
