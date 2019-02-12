@@ -254,11 +254,11 @@ void loop() {
     
      if (state == HIGH)
     {
-      strcpy(payLoad,",ON");
+      strcpy(payLoad,"ON");
     }
     else
     {
-    strcpy(payLoad,",OFF");
+    strcpy(payLoad,"OFF");
     }
     Serial.println(payLoad);
     activeState = txData;
