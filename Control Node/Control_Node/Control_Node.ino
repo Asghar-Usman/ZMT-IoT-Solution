@@ -249,16 +249,16 @@ void loop() {
     /// the update time 
 
     Serial.println("Please send the status of your device");
-    strcpy(payLoad, "Status");
+    //strcpy(payLoad, "Status");
     previousMillis = currentMillis;
     
      if (state == HIGH)
     {
-      strcpy(payLoad+6,",ON");
+      strcpy(payLoad,",ON");
     }
     else
     {
-    strcpy(payLoad+6,",OFF");
+    strcpy(payLoad,",OFF");
     }
     Serial.println(payLoad);
     activeState = txData;
