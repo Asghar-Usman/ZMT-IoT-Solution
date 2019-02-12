@@ -44,7 +44,7 @@ SEN_NODE activeState = waitForCommand; // Create a variable and initialize it to
 
 unsigned long currentMillis, previousMillis;
 
-#define UPDATE_INTERVAL_MINUTES 1
+#define UPDATE_INTERVAL_MINUTES 0.2
 
 byte state = HIGH;  // Turn ON the device at bootup
 uint8_t len = sizeof(buf);
@@ -257,8 +257,9 @@ void loop() {
       strcpy(payLoad+6,",ON");
     }
     else
+    {
     strcpy(payLoad+6,",OFF");
-
+    }
     Serial.println(payLoad);
     activeState = txData;
     }
