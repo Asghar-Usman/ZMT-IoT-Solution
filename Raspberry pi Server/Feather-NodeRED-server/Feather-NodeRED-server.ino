@@ -138,6 +138,7 @@ void loop() {
       case transferToServer:
       {
         Serial.println("State: Transfer to Server");
+        Serial.print("RawData: ");Serial.println(charArray);
         if (from%2 == 0)
         {
           // Even Number
