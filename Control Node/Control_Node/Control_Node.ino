@@ -163,7 +163,7 @@ void loop() {
       }
       digitalWrite(CONTROL_PIN, state);
       delay (500);
-      strcpy(payLoad, "Done");
+      strcpy(payLoad, "Done ");
       activeState = txData;
       
       break;
@@ -254,11 +254,11 @@ void loop() {
     
      if (state == HIGH)
     {
-      strcpy(payLoad,"ON");
+      strcpy(payLoad,"ON   ");
     }
     else
     {
-    strcpy(payLoad,"OFF");
+    strcpy(payLoad,"OFF  ");
     }
     Serial.println(payLoad);
     activeState = txData;
