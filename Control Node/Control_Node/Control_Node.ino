@@ -18,7 +18,7 @@
 // change addresses for each client board, any number :)
 #define MY_ADDRESS      3
 #define RETRIES         5
-#define CONTROL_PIN     6
+#define CONTROL_PIN     5
 
 #if defined (__AVR_ATmega328P__)  // Feather 328P w/wing
   #define RFM69_INT     3  // RFM69 ---> G0
@@ -154,7 +154,7 @@ void loop() {
         
       }
 
-      else if (strncmp (charArray, "OF", 2) == 0)
+      else if (strncmp (charArray, "OFF", 2) == 0)
       {
         
         Serial.println("You have to TURN OFF the device");
@@ -272,4 +272,3 @@ void loop() {
     
     }
 }
-
